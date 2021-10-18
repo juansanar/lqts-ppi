@@ -136,7 +136,4 @@ for (gene in geneList) {
 upset(fromList(biogrid), nsets = 13, order.by = "freq", nintersects = NA)
 
 # Finding common interactors ####
-intersect(biogrid[["ANK2"]], biogrid[["SNTA1"]])
-
-
 
