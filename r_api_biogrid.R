@@ -163,4 +163,20 @@ if (websiteLive) plotEnrich(enriched[[2]], showTerms = 20, numChar = 40, y = "Co
 if (websiteLive) plotEnrich(enriched[[3]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
 
 # KEGG
-if (websiteLive) plotEnrich(enriched_kegg[[1]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+ank2_go_mol_plot <- if (websiteLive) plotEnrich(enriched_kegg[[1]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+
+# KCNQ1 ####
+dbs <- c("GO_Molecular_Function_2021", "GO_Cellular_Component_2021", "GO_Biological_Process_2021")
+
+if (websiteLive) {
+  kcnq1_enriched <- enrichr(biogrid[["KCNQ1"]], dbs)
+}
+
+kcnq1_go_mol_plot <- if (websiteLive) plotEnrich(kcnq1_enriched[[1]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+
+dbs_kegg <- c("KEGG_2021_Human")
+if (websiteLive) {
+  kcnq1_enriched_kegg <- enrichr(biogrid[["KCNQ1"]], dbs_kegg)
+}
+
+kcnq1_kegg_plot <- if (websiteLive) plotEnrich(kcnq1_enriched_kegg[[1]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
