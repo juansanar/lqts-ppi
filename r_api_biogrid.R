@@ -132,8 +132,35 @@ for (gene in geneList) {
 #   print(gene %in% biogrid[[gene]])
 # }
 
-# Create UpSet plot
+# Create UpSet plot of common interactors
 upset(fromList(biogrid), nsets = 13, order.by = "freq", nintersects = NA)
 
-# Finding common interactors ####
+# Enrichr analysis with enrichR ####
+library(enrichR)
 
+setEnrichrSite("Enrichr") # Human genes
+websiteLive <- TRUE
+
+dbs <- listEnrichrDbs()
+
+if (is.null(dbs)) websiteLive <- FALSE
+if (websiteLive) head(dbs)
+
+dbs <- c("GO_Molecular_Function_2021", "GO_Cellular_Component_2021", "GO_Biological_Process_2021")
+if (websiteLive) {
+  enriched <- enrichr(biogrid[["ANK2"]], dbs)
+}
+
+dbs_kegg <- c("KEGG_2021_Human")
+if (websiteLive) {
+  enriched_kegg <- enrichr(biogrid[["ANK2"]], dbs_kegg)
+}
+
+if (websiteLive) enriched[["GO_Molecular_Function_2015"]]
+
+ank2_go_mol_func <- if (websiteLive) plotEnrich(enriched[[1]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+if (websiteLive) plotEnrich(enriched[[2]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+if (websiteLive) plotEnrich(enriched[[3]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+
+# KEGG
+if (websiteLive) plotEnrich(enriched_kegg[[1]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
