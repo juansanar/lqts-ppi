@@ -2,8 +2,8 @@
 library(httr)
 library(jsonlite)
 library(tidyverse)
-library(magrittr)
 library(UpSetR)
+library(enrichR)
 
 # Set up working directory
 setwd("~/GitHub/lqts-ppi")
@@ -133,10 +133,9 @@ for (gene in geneList) {
 # }
 
 # Create UpSet plot of common interactors
-upset(fromList(biogrid), nsets = 13, order.by = "freq", nintersects = NA)
+upset_plot <- upset(fromList(biogrid), nsets = 13, order.by = "freq", nintersects = NA)
 
 # Enrichr analysis with enrichR ####
-library(enrichR)
 
 setEnrichrSite("Enrichr") # Human genes
 websiteLive <- TRUE
@@ -148,35 +147,44 @@ if (websiteLive) head(dbs)
 
 dbs <- c("GO_Molecular_Function_2021", "GO_Cellular_Component_2021", "GO_Biological_Process_2021")
 if (websiteLive) {
-  enriched <- enrichr(biogrid[["ANK2"]], dbs)
+  ank2_go_enriched <- enrichr(biogrid[["ANK2"]], dbs)
 }
 
 dbs_kegg <- c("KEGG_2021_Human")
 if (websiteLive) {
-  enriched_kegg <- enrichr(biogrid[["ANK2"]], dbs_kegg)
+  ank2_enriched_kegg <- enrichr(biogrid[["ANK2"]], dbs_kegg)
 }
 
 if (websiteLive) enriched[["GO_Molecular_Function_2015"]]
 
-ank2_go_mol_func <- if (websiteLive) plotEnrich(enriched[[1]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
-if (websiteLive) plotEnrich(enriched[[2]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
-if (websiteLive) plotEnrich(enriched[[3]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+ank2_go_mol_plot <- if (websiteLive) plotEnrich(ank2_go_enriched[[1]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+
+ank2_go_com_plot <- if (websiteLive) plotEnrich(ank2_go_enriched[[2]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+
+ank2_go_pro_plot <- if (websiteLive) plotEnrich(ank2_go_enriched[[3]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
 
 # KEGG
-ank2_go_mol_plot <- if (websiteLive) plotEnrich(enriched_kegg[[1]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+ank2_kegg_plot <- if (websiteLive) plotEnrich(ank2_enriched_kegg[[1]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
 
 # KCNQ1 ####
-dbs <- c("GO_Molecular_Function_2021", "GO_Cellular_Component_2021", "GO_Biological_Process_2021")
-
 if (websiteLive) {
-  kcnq1_enriched <- enrichr(biogrid[["KCNQ1"]], dbs)
+  kcnq1_go_enriched <- enrichr(biogrid[["KCNQ1"]], dbs)
 }
 
-kcnq1_go_mol_plot <- if (websiteLive) plotEnrich(kcnq1_enriched[[1]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+kcnq1_go_mol_plot <- if (websiteLive) plotEnrich(kcnq1_go_enriched[[1]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
 
-dbs_kegg <- c("KEGG_2021_Human")
+kcnq1_go_com_plot <- if (websiteLive) plotEnrich(kcnq1_go_enriched[[2]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+
+kcnq1_go_pro_plot <- if (websiteLive) plotEnrich(kcnq1_go_enriched[[3]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+
 if (websiteLive) {
   kcnq1_enriched_kegg <- enrichr(biogrid[["KCNQ1"]], dbs_kegg)
 }
 
 kcnq1_kegg_plot <- if (websiteLive) plotEnrich(kcnq1_enriched_kegg[[1]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+
+cowplot::plot_grid(ank2_go_com_plot, kcnq1_go_com_plot)
+
+cowplot::plot_grid(ank2_go_mol_plot, kcnq1_go_mol_plot)
+
+cowplot::plot_grid(ank2_go_pro_plot, kcnq1_go_pro_plot)
