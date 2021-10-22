@@ -133,4 +133,4 @@ for (gene in geneList_sp) {
 # }
 
 # Create UpSet plot of common interactors
-upset_plot <- upset(fromList(biogrid_sp), nsets = 13, order.by = "freq", nintersects = NA)
+upset_plot <- upset(fromList(biogrid_sp), nsets = 21, order.by = "freq", nintersects = NA)
