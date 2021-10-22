@@ -171,7 +171,15 @@ if (websiteLive) {
   kcnq1_go_enriched <- enrichr(biogrid[["KCNQ1"]], dbs)
 }
 
-kcnq1_go_mol_plot <- if (websiteLive) plotEnrich(kcnq1_go_enriched[[1]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+kcnq1_go_mol_plot <- if (websiteLive) 
+  plotEnrich(kcnq1_go_enriched[[1]], 
+             showTerms = 20, 
+             numChar = 40, 
+             y = "Count", 
+             orderBy = "P.value",
+             ylab = "Interactor count",
+             xlab = "GO molecular function terms",
+             title = "KCNQ1 GO molecular function enrichment analysis")
 
 kcnq1_go_com_plot <- if (websiteLive) plotEnrich(kcnq1_go_enriched[[2]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
 
