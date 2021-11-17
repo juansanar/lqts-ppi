@@ -1,0 +1,103 @@
+---
+title: End-to-End workflow for DGE using Affymetrix microarrays - Cardiac Neural Crest
+  Cells
+author: "Juan C. Sanchez-Arias"
+date: "16/11/2021"
+output:
+  html_document:
+    toc: true
+    toc_depth: 4
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+Differential gene expression (DGE) analysis of Affymetrix microarrays of cardiac neural crest cells using Klaus B, Reisenauer S (2019). maEndToEnd: [An end to end workflow for differential gene expression using Affymetrix microarrays.](https://bioconductor.riken.jp/packages/3.9/workflows/html/maEndToEnd.html) Bioconductor workflow.
+
+```{r main-package, include=FALSE}
+
+if (!require("BiocManager"))
+    install.packages("BiocManager")
+BiocManager::install("maEndToEnd")
+```
+
+```{r main-package-import, include=TRUE}
+suppressPackageStartupMessages({library("maEndToEnd")})
+```
+
+```{r other-packages, include=TRUE}
+
+#General Bioconductor packages
+    library(Biobase)
+    library(oligoClasses)
+     
+#Annotation and data import packages
+    library(ArrayExpress)
+    library(pd.hugene.1.0.st.v1)
+    library(hugene10sttranscriptcluster.db)
+     
+#Quality control and pre-processing packages
+    library(oligo)
+    library(arrayQualityMetrics)
+     
+#Analysis and statistics packages
+    library(limma)
+    library(topGO)
+    library(ReactomePA)
+    library(clusterProfiler)
+     
+#Plotting and color options packages
+    library(gplots)
+    library(ggplot2)
+    library(geneplotter)
+    library(RColorBrewer)
+    library(pheatmap)
+    library(enrichplot)
+     
+#Formatting/documentation packages
+   #library(rmarkdown)
+   #library(BiocStyle)
+    library(dplyr)
+    library(tidyr)
+
+#Helpers:
+    library(stringr)
+    library(matrixStats)
+    library(genefilter)
+    library(openxlsx)
+
+```
+
+## Downloading raw data from ArrayExpress
+
+From Klaus B, Reisenauer S (2019). maEndToEnd: 
+>The first step of the analysis is to download the raw data CEL files. These files are produced by the array scanner software and contain the measured probe intensities.
+
+For this analysis on cardiac neural crest cells, I will use the data deposited with study **E-GEOD-41179**.
+
+```{r raw-data-check, echo=TRUE}
+
+raw_data_dir <- tempdir()
+
+if (!dir.exists(raw_data_dir)) {
+    dir.create(raw_data_dir)
+}
+```
+
+From Klaus B, Reisenauer S (2019). maEndToEnd:
+
+>Each ArrayExpress data set has a landing page summarizing the data set, and we use the `getAE` function from the ArrayExpress Bioconductor package to obtain the ftp links to the raw data files (Data from Palmieri et. al. on ArrayEpress). With the code below, we download the raw data (also including annotation data) from ArrayExpress (2) by using the `getAE`-function. The data are saved in the raw_data_dir created above. The names of the downloaded files are returned as a list."
+
+```{r raw-data-import, include=TRUE}
+
+anno_AE <- getAE("E-GEOD-41179", path = raw_data_dir, type = "raw")
+```
+
+## Background information on the data
+
+From Klaus B, Reisenauer S (2019). maEndToEnd:
+
+> Each dataset in ArrayExpress is stored following MAGE-TAB (MicroArray Gene Expression Tabular) specifications: - Investigation Description Format (IDF): contains top level information about the experiment including title, description, submitter contact details and protocols - Array Design Format (ADF) - Sample and Data Relationship Format (SDRF): contains essential information on the experimental samples, e.g. the experimental group(s) they belong to. - Raw data files - Processed data files
