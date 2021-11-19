@@ -6,14 +6,14 @@ date: "16/11/2021"
 output:
   html_document:
     toc: true
-    toc_depth: 4
+    toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Introduction
+## 1. Introduction
 
 Differential gene expression (DGE) analysis of Affymetrix microarrays of cardiac neural crest cells using Klaus B, Reisenauer S (2019). maEndToEnd: [An end to end workflow for differential gene expression using Affymetrix microarrays.](https://bioconductor.riken.jp/packages/3.9/workflows/html/maEndToEnd.html) Bioconductor workflow.
 
@@ -71,10 +71,9 @@ suppressPackageStartupMessages({library("maEndToEnd")})
 
 ```
 
-## Downloading raw data from ArrayExpress
+## 2. Downloading raw data from ArrayExpress
 
-From Klaus B, Reisenauer S (2019). maEndToEnd: 
->The first step of the analysis is to download the raw data CEL files. These files are produced by the array scanner software and contain the measured probe intensities.
+From Klaus B, Reisenauer S (2019). maEndToEnd: \>The first step of the analysis is to download the raw data CEL files. These files are produced by the array scanner software and contain the measured probe intensities.
 
 For this analysis on cardiac neural crest cells, I will use the data deposited with study **E-GEOD-41179**.
 
@@ -89,15 +88,170 @@ if (!dir.exists(raw_data_dir)) {
 
 From Klaus B, Reisenauer S (2019). maEndToEnd:
 
->Each ArrayExpress data set has a landing page summarizing the data set, and we use the `getAE` function from the ArrayExpress Bioconductor package to obtain the ftp links to the raw data files (Data from Palmieri et. al. on ArrayEpress). With the code below, we download the raw data (also including annotation data) from ArrayExpress (2) by using the `getAE`-function. The data are saved in the raw_data_dir created above. The names of the downloaded files are returned as a list."
+> Each ArrayExpress data set has a landing page summarizing the data set, and we use the `getAE` function from the ArrayExpress Bioconductor package to obtain the ftp links to the raw data files (Data from Dai X, Jiang W, Zhang Q, Xu L et al. Requirement for integrin-linked kinase in neural crest migration and differentiation and outflow tract morphogenesis. BMC Biol 2013 Oct 16;11:107. PMID: 24131868). With the code below, we download the raw data (also including annotation data) from ArrayExpress (2) by using the `getAE`-function. The data are saved in the raw_data_dir created above. The names of the downloaded files are returned as a list."
 
 ```{r raw-data-import, include=TRUE}
 
 anno_AE <- getAE("E-GEOD-41179", path = raw_data_dir, type = "raw")
 ```
 
-## Background information on the data
+## 3. Background information on the data
 
 From Klaus B, Reisenauer S (2019). maEndToEnd:
 
-> Each dataset in ArrayExpress is stored following MAGE-TAB (MicroArray Gene Expression Tabular) specifications: - Investigation Description Format (IDF): contains top level information about the experiment including title, description, submitter contact details and protocols - Array Design Format (ADF) - Sample and Data Relationship Format (SDRF): contains essential information on the experimental samples, e.g. the experimental group(s) they belong to. - Raw data files - Processed data files
+> Each dataset in ArrayExpress is stored following MAGE-TAB (MicroArray Gene Expression Tabular) specifications:
+
+-   Investigation Description Format (IDF): contains top level information about the experiment including title, description, submitter contact details and protocols
+-   Array Design Format (ADF)
+-   Sample and Data Relationship Format (SDRF): contains essential information on the experimental samples, e.g. the experimental group(s) they belong to.
+-   Raw data files
+-   Processed data files
+
+> Before we move on to the actual raw data import, we will briefly introduce the `ExpressionSet` class contained in the `Biobase` package. It is commonly used to store microarray data in Bioconductor.
+
+## 4. Bioconductor ExpressionSets
+
+From Klaus B, Reisenauer S (2019). maEndToEnd:
+
+> Genomic data can be very complex, usually consisting of a number of different components, e.g. information on the experimental samples, annotation of genomic features measured as well as the experimental data itself. In Bioconductor, the approach is taken that these components should be stored in a single structure to easily manage the data.
+
+> The package `Biobase` contains standardized data structures to represent genomic data. The `ExpressionSet` class is designed to combine several different sources of information (i.e. as contained in the various MAGE-TAB files) into a single convenient structure. An `ExpressionSet` can be manipulated (e.g., subsetted, copied), and is the input to or output of many Bioconductor functions.
+
+The data in an `ExpressionSet` consist of:
+
+-   assayData: Expression data from microarray experiments with microarray probes in rows and sample identifiers in - columns
+-   metaData
+-   phenoData: A description of the samples in the experiment with sample identifiers in rows and description elements in columns; holds the content of the SDRF file
+-   featureData: metadata about the features on the chip or technology used for the experiment with same rows as assayData by default and freely assignable columns
+-   further annotations for the features, for example gene annotations from biomedical databases (annotation). experimentData: A flexible structure to describe the experiment.
+
+> The ExpressionSet class coordinates all of these data, so that one does not have to worry about the details. However, one should keep in mind that the rownames of the phenoData have to match the column names of the assay data, while the row names of the assay data have to match the row names of the featureData. This is illustrated in Figure 1.
+
+![](maEndtoEnd-Fig1.png){width = 60%}
+
+> You can use the functions `pData` and `fData` to extract the sample and feature annotation, respectively, from an ExpressionSet. The function `exprs` will return the expression data itself as a matrix.
+
+## 5. Import of annotation data and microarray expression data as "ExpressionSet"
+
+From Klaus B, Reisenauer S (2019). maEndToEnd:
+
+> We import the SDRF file with the `read.delim` function from the raw data folder in order to obtain the sample annotation.
+
+> The sample names are given in the column Array.Data.File of the SDRF data table and will be used as rownames for the SDRF file.
+
+> We turn the SDRF table into an `AnnotatedDataFrame` from the `Biobase` package that we will need later to create an `ExpressionSet` for our data (3).
+
+```{r SDRF, include=TRUE}
+
+sdrf_location <- file.path(raw_data_dir, anno_AE$sdrf)
+SDRF <- read.delim(sdrf_location)
+
+rownames(SDRF) <- SDRF$Array.Data.File
+SDRF <- AnnotatedDataFrame(SDRF)
+
+```
+
+> We now create the Expression Set object `raw_data`, which contains array data, pheno data (from the SDRF file) as well as the information of the chip annotation package used.
+
+> The analysis of Affymetrix arrays starts with CEL files. These are the result of the processing of the raw image files using the Affymetrix software and contain estimated probe intensity values. Each CEL file additionally contains some metadata, such as a chip identifier.
+
+> We use the function `read.celfiles` from the `oligo` package (4) to import the files:
+
+```{r read-cel-files, include=TRUE}
+
+raw_data <- oligo::read.celfiles(filenames = file.path(raw_data_dir, 
+                                                SDRF$Array.Data.File),
+                                    verbose = FALSE, phenoData = SDRF)
+stopifnot(validObject(raw_data))
+```
+
+This automatically creates an ExpressionSet, fills the sections "array data" with the data from the CEL files and uses the correct chip annotation package, in this case *pd.hugene.1.0.st.v1* (the chip-type is also stored in the .CEL files).
+
+Furthermore, we specified our `AnnotatedDataFrame` "SDRF" created earlier from the SDRF file as `phenoData`. Thus, we had to make sure to import the CEL files in the order that corresponds to the SDRF table --- to enforce this, we used the column `Array.Data.File` of the `SDRF` table as the `filenames` argument.
+
+Finally, we checked whether the object created is valid (e.g. sample names match between the different tables).
+
+We now have a first look on the raw data.
+
+The `pData` function of the `Biobase` package directly accesses the `phenoData` in the ExpressionSet `raw_data`. With the `head()` function, we can view the first six lines of the table. We have a look at the columns included and retain only those columns that are related to the experimental factors of interest.
+
+```{r}
+head(Biobase::pData(raw_data))
+```
+
+The columns of interest for us are the following:
+
+-   identifiers of the subjects/samples: i.e. columns "Source.Name", "Comment..Sample_title."
+-   condition/disease of the subjects/samples: i.e. "Characteristics..variation."
+-   genotype: i.e. "Comment..Sample_source_name."
+
+We now subselect the corresponding columns:
+
+```{r data-subselection, include=TRUE}
+
+Biobase::pData(raw_data) <- Biobase::pData(raw_data)[, c("Source.Name",
+                                     "Comment..Sample_title.",
+                                     "Characteristics..variation.",
+                                     "Comment..Sample_source_name.")]
+
+```
+
+## 6. Quality control of the raw data
+
+From Klaus B, Reisenauer S (2019). maEndToEnd: \> The first step after the initial data import is the quality control of the data. Here we check for outliers and try to see whether the data clusters as expected, e.g. by the experimental conditions. The expression intensity values are in the assayData sub-object `exprs` and can be accessed by the `exprs(raw_data)` function. The rows represent the microarray probes, i.e. the single DNA locations on the chip, while the columns represent one microarray, i.e. a sample of inflamed and non-inflamed tissue of every patient, respectively.
+
+```{r expression-data-01, include=TRUE}
+
+# Checkin the expression data of the first 10 probes from the 4 exp samples.
+Biobase::exprs(raw_data)[1:10, 1:4]
+
+```
+
+> For quality control, we take the log2 of `Biobase::exprs(raw_data)`, as expression data is commonly analyzed on a logarithmic scale. We then perform a principal component analysis (PCA) and plot it (Figure 2). Every point in the plot represents one sample, with the colour indicating phenotype and condition.
+
+```{r expression-data-02, include=TRUE}
+
+exp_raw <- log2(Biobase::exprs(raw_data))
+PCA_raw <- prcomp(t(exp_raw), scale. = FALSE)
+
+percentVar <- round(100*PCA_raw$sdev^2/sum(PCA_raw$sdev^2),1)
+sd_ratio <- sqrt(percentVar[2] / percentVar[1])
+
+dataGG <- data.frame(PC1 = PCA_raw$x[,1], PC2 = PCA_raw$x[,2],
+                    Condition = pData(raw_data)$Characteristics..variation.,
+                    Phenotype = pData(raw_data)$Comment..Sample_source_name.,
+                    Individual = pData(raw_data)$Comment..Sample_title.)
+
+ggplot(dataGG, aes(PC1, PC2)) +
+      geom_point(aes(shape = Condition, colour = Phenotype)) +
+  ggtitle("PCA plot of the log-transformed raw expression data") +
+  xlab(paste0("PC1, VarExp: ", percentVar[1], "%")) +
+  ylab(paste0("PC2, VarExp: ", percentVar[2], "%")) +
+  theme(plot.title = element_text(hjust = 0.5))+
+  coord_fixed(ratio = sd_ratio) +
+  scale_shape_manual(values = c(4,15)) + 
+  scale_color_manual(values = c("darkorange2", "dodgerblue4"))
+
+```
+
+> We also represent the probe intensities via a boxplot graph with one box per individual microarray. (Figure 3). Note that the `oligo::boxplot` function, i.e. the boxplot function of the `oligo` package, can take expression sets as argument. It accesses the expression data and performs a log2-transformation by default. We therefore can use `raw_data` as argument here.
+
+```{r expression-data-03, include=TRUE}
+
+oligo::boxplot(raw_data, target = "core", 
+               main = "Boxplot of log2-intensitites for the raw data")
+```
+
+> When looking at the boxplot (Figure 3), we see that the intensity distributions of the individual arrays are quite different, indicating the need for an appropriate normalization, which we will discuss next.
+>
+> Until now, we have only performed a very basic quality control; more elaborate quality control plots are available in the package arrayQualityMetrics (5). The package produces an html report, containing the quality control plots together with a description of their aims and an identification of possible outliers. We do not discuss this tool in detail here, but simply provide the code below, which creates a report for our raw data.
+
+```{r expression-data-04, include=TRUE}
+
+arrayQualityMetrics(expressionset = raw_data,
+    outdir = tempdir(),
+    force = TRUE, do.logtransform = TRUE,
+    intgroup = c("Characteristics..variation.", "Comment..Sample_source_name."))
+
+```
+
