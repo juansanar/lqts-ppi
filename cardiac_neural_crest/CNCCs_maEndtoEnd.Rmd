@@ -73,7 +73,9 @@ suppressPackageStartupMessages({library("maEndToEnd")})
 
 ## 2. Downloading raw data from ArrayExpress
 
-From Klaus B, Reisenauer S (2019). maEndToEnd: \>The first step of the analysis is to download the raw data CEL files. These files are produced by the array scanner software and contain the measured probe intensities.
+From Klaus B, Reisenauer S (2019). maEndToEnd: 
+
+> The first step of the analysis is to download the raw data CEL files. These files are produced by the array scanner software and contain the measured probe intensities.
 
 For this analysis on cardiac neural crest cells, I will use the data deposited with study **E-GEOD-41179**.
 
@@ -266,3 +268,130 @@ arrayQualityMetrics(expressionset = raw_data,
 > After normalization, summarization is necessary to be done because on the Affymetrix platform, transcripts are represented by multiple probes, that is multiple locations on the array. For each gene, the background-adjusted and normalized intensities of all probes need to be summarized into one quantity that estimates an amount proportional to the amount of RNA transcript.
 >
 >After the summarization step, the summarized data can be annotated with various information, e.g. gene symbols and ENSEMBL gene identifiers. There is an annotation database available from Bioconductor for our platform, namely the package *hugene10sttranscriptcluster.db*.
+
+### 7.5 One-step preprocessing in oligo
+> The package oligo allows us to perform background correction, normalization and summarization in one single step using a deconvolution method for background correction, quantile normalization and the RMA (robust multichip average) algorithm for summarization.
+>
+>This series of steps as a whole is commonly referred to as RMA algorithm, although strictly speaking RMA is merely a summarization method (6–8).
+
+## 8. Relative Log Expression data quality analysis
+
+> Before calibrating and evaluating the data, we want to perform another quality control procedure, namely Relative Log Expression (RLE), as described in the article by Gandolfo et al (9). To this end, we first perform an RMA without prior normalization:
+
+```{r expression-data-05, include=TRUE}
+
+dai2012 <- oligo::rma(raw_data,
+                      #target = "core",
+                      normalize = FALSE)
+```
+
+### 8.1 Computing the RLE
+
+> The RLE is performed by calculating the median log2 intensity of every transcript across all arrays.
+>
+> We do this by calculating the row medians of exprs(palmieri_eset), as the transcripts are represented by the rows and the single microarrays by the columns.
+>
+> Note that we do not have to apply the log2 manually, as the output data of the RMA function is in log2 scale by default.
+>
+> We then substract this transcript median intensity from every transcript intensity via the sweep function.
+
+### 8.2 Plotting RLE
+
+> We finally reshape the data into a format in which we can use to create a boxplot for each array, as before:
+
+```{r rle, include=TRUE}
+row_medians_assayData <- 
+  Biobase::rowMedians(as.matrix(Biobase::exprs(dai2012)))
+
+RLE_data <- sweep(Biobase::exprs(dai2012), 1, row_medians_assayData)
+
+RLE_data <- as.data.frame(RLE_data)
+RLE_data_gathered <- 
+  tidyr::gather(RLE_data, patient_array, log2_expression_deviation)
+
+ggplot2::ggplot(RLE_data_gathered, aes(patient_array,
+                                       log2_expression_deviation)) + 
+  geom_boxplot(outlier.shape = NA) + 
+  ylim(c(-2, 2)) + 
+  theme(axis.text.x = element_text(colour = "aquamarine4", 
+                                  angle = 60, size = 6.5, hjust = 1 ,
+                                  face = "bold"))
+
+```
+> Note that the y-axis now displays for each microarray the deviation of expression intensity from the median expression of the respective single transcripts across arrays.
+
+>Boxes with a larger extension therefore indicate an unusually high deviation from the median in a lot of transcripts, suggesting that these arrays are different from most of the others in some way.
+
+>Boxes that are shifted in y-direction indicate a systematically higher or lower expression of the majority of transcripts in comparison to most of the other arrays. This could be caused by quality issues or batch effects.
+
+>Therefore, if shape and median of a given box varies too much from the bulk, they should be inspected and potentially removed.
+
+## 9. Calibration of the data
+> Now, we can apply the full RMA algorithm to our data in order to background-correct, normalize and summarize:
+
+```{r rma, include=TRUE}
+dai2012_norm <- oligo::rma(raw_data)
+
+```
+
+### 9.2 Quality assessment of normalized data
+
+```{r norm-data-quality,include=TRUE}
+
+exp_dai2012 <- Biobase::exprs(dai2012_norm)
+PCA <- prcomp(t(exp_dai2012), scale = FALSE)
+
+percentVar <- round(100*PCA$sdev^2/sum(PCA$sdev^2),1)
+sd_ratio <- sqrt(percentVar[2] / percentVar[1])
+
+dataGG <- data.frame(PC1 = PCA$x[,1], PC2 = PCA$x[,2],
+                    Condition = 
+                     Biobase::pData(dai2012_norm)$Characteristics..variation.,
+                    Phenotype = 
+                     Biobase::pData(dai2012_norm)$Comment..Sample_source_name.)
+
+
+ggplot(dataGG, aes(PC1, PC2)) +
+      geom_point(aes(shape = Condition, colour = Phenotype)) +
+  ggtitle("PCA plot of the calibrated, summarized data") +
+  xlab(paste0("PC1, VarExp: ", percentVar[1], "%")) +
+  ylab(paste0("maEndtoEnd-Fig1.pngC2, VarExp: ", percentVar[2], "%")) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  coord_fixed(ratio = sd_ratio) +
+  scale_shape_manual(values = c(4,15)) + 
+  scale_color_manual(values = c("darkorange2", "dodgerblue4"))
+
+
+```
+
+## 10. Filtering based on intensity
+
+```{r filtering-01, include=TRUE}
+
+dai2012_medians <- rowMedians(Biobase::exprs(dai2012_norm))
+
+hist_res <- hist(dai2012_medians, 100, col = "cornsilk1", freq = FALSE, 
+            main = "Histogram of the median intensities", 
+            border = "antiquewhite4",
+            xlab = "Median intensities")
+```
+> In the histogram of the gene-wise medians (Figure 8), we can clearly see an enrichment of low medians on the left hand side. These represent the genes we want to filter. In order to infer a cutoff from the data, we inspect the histogram: We visually set a cutoff line man_threshold to the left of the histogram peak in order not to exclude too many genes. In our example, we choose a threshold of 4. We plot the same histogram as before and add the threshold line with the abline() function:
+
+```{r filtering-02, include=TRUE}
+man_threshold <- 4
+
+hist_res <- hist(dai2012_medians, 100, col = "cornsilk", freq = FALSE, 
+            main = "Histogram of the median intensities",
+            border = "antiquewhite4",
+            xlab = "Median intensities")
+
+abline(v = man_threshold, col = "coral4", lwd = 2)
+```
+> Transcripts that do not have intensities larger than the threshold in at least as many arrays as the smallest experimental group are excluded.
+
+>In order to do so, we first have to get a list with the number of samples (=arrays) (no_of_samples) in the experimental groups:
+
+```{r filtering-03, include=TRUE}
+
+```
+
