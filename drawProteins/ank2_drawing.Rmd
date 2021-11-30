@@ -30,11 +30,11 @@ library(tidyverse)
 
 | Variant (AA) | Domain                           |
 |--------------|----------------------------------|
-| p.Val1486Leu | Regulatory domain (death domain) |
-| p.Glu1449Gly | Regulatory domain (death domain) |
-| p.Thr3095del | Regulatory domain (C-terminus)   |
+| p.Val1486Leu | Spectrin Binding domain (ZU5 2) |
+| p.Glu1449Gly | Between Spectrin Binding domain and Regulatory domain (death domain) |
 | p.Arg1582Trp | Regulatory domain (C-terminus)   |
 | p.Glu1837Lys | Regulatory domain (C-terminus)   |
+| p.Thr3095del | Regulatory domain (C-terminus)   |
 
 - Quering information from UniProt
 
