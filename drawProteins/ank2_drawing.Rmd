@@ -1,0 +1,96 @@
+---
+title: "Drawing variants in proteins with drawPRotein"
+author: "Juan C. Sanchez-Arias"
+date: "29/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Installing drawProteins
+
+```{r install-libraries, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("drawProteins")
+
+```
+
+## Loading depdendencies
+
+```{r load-libraries, include=TRUE, echo=TRUE, warning=FALSE}
+library(drawProteins)
+library(tidyverse)
+```
+
+## Getting ANK2 information
+
+| Variant (AA) | Domain                           |
+|--------------|----------------------------------|
+| p.Val1486Leu | Regulatory domain (death domain) |
+| p.Glu1449Gly | Regulatory domain (death domain) |
+| p.Thr3095del | Regulatory domain (C-terminus)   |
+| p.Arg1582Trp | Regulatory domain (C-terminus)   |
+| p.Glu1837Lys | Regulatory domain (C-terminus)   |
+
+- Quering information from UniProt
+
+```{r ank2-query-01, include = TRUE, echo=FALSE}
+# accession numbers of ANK2 (ankyrin b)
+    drawProteins::get_features("Q01484") ->
+    rel_json
+```
+ 
+ - Turning json data into a dataframe
+ 
+```{r ank2-query-02, include=TRUE}
+drawProteins::feature_to_dataframe(rel_json) -> rel_data
+
+head(rel_data[1:4])
+```
+ 
+## Let's draw!
+Let's start with a blank canvas
+```{r ank2-draw-01, include=TRUE}
+# Blank canvas
+draw_canvas(rel_data) -> p
+p
+```
+Now let's draw a chain of aminoacids:
+
+```{r ank2-draw-02, include=TRUE}
+p <- draw_chains(p, rel_data)
+p
+```
+
+Now let's add the domains:
+
+```{r ank2-darw-03, include=TRUE}
+p <- draw_domains(p, rel_data)
+p
+```
+Let's update the domains with some tidyvesde magic
+
+![](https://encyclopedia.pub/media/item_content/202106/60b89c8560a03biomolecules-10-00211-g001-550.jpg)
+
+```{r ank2-darw-04, include=TRUE}
+# Updating domains
+rel_data_domains <- rel_data %>% filter(type == "DOMAIN") 
+
+ank2_mbd <- c("DOMAIN", "MBD", 30, 822, 792, "Q01484", "ANK2_HUMAN", 9606, 1)
+
+names(ank2_mbd) <- names(rel_data_domains)
+
+ank2_reg <- c("DOMAIN", "REG", 30, 822, 792, "Q01484", "ANK2_HUMAN", 9606, 1)
+
+rel_data_domains <- rbind(rel_data_domains, ank2_mbd)
+
+rel_data_domains <- type.convert(rel_data_domains)
+
+p2 <- draw_domains(p, rel_data_domains)
+p2
+```
+
