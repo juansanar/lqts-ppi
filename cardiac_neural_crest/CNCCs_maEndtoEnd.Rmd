@@ -491,9 +491,9 @@ validObject(dai2012_final)
 
 By left-joining with `anno_dai2012`, we thus add the “SYMBOL” and “GENENAME” columns from `anno_dai2012` for only the `PROBEID`s that are in `fData(dai2012_final)` and thus get the feature Data for the filtered probes.
 
-## 12. Checking expresson values
+## 12. Checking expresson values of WT samples
 
-```{r results-01, include=TRUE}
+```{r results-all, include=TRUE}
 # creating dataframe `df` with exdpression data
 df <- dai2012_final@assayData[["exprs"]]
 
@@ -511,7 +511,11 @@ df$gene_symbol <- rownames(df)
 df_wt <- df[-c(1,2)]
 
 df_wt_long <- df_wt %>% pivot_longer(cols = c(GSM1010123_8843.Chen.WT2.as_Mouse430_2_.CEL, GSM1010122_8842.Chen.WT1.as_Mouse430_2_.CEL), names_to = "sample", values_to = "log2_expression")
+```
 
+## Exploring expression values g LQTS genes
+Creation of a data frame filtered with LQTS genes.
+```{r results-lqts-01, include=TRUE}
 df_wt_lqts <- df_wt_long %>% filter(toupper(gene_symbol) == "ANK2"|
                                     toupper(gene_symbol) == "KCNQ1"|
                                     toupper(gene_symbol) == "KCNH2"|
@@ -525,5 +529,20 @@ df_wt_lqts <- df_wt_long %>% filter(toupper(gene_symbol) == "ANK2"|
                                     toupper(gene_symbol) == "AKAP9"|
                                     toupper(gene_symbol) == "SNTA1"|
                                     toupper(gene_symbol) == "ALG10")
+```
+
+### Plotting expression valus with ggplot
+
+```{r results-lqts-02, include=TRUE}
+df_wt_lqts %>% group_by(gene_symbol) %>% 
+  summarise(log2_exp = mean(log2_expression), sd = sd(log2_expression)) %>%
+  arrange(desc(log2_exp)) %>% 
+  mutate(gene_symbol=factor(gene_symbol, levels=gene_symbol)) %>%
+  ggplot(aes(gene_symbol, log2_exp, colour = gene_symbol, size = sd)) + 
+  geom_rect(aes(xmin = "Akap9", xmax = "Cav3"), ymin = 0, ymax = 11, fill = "grey", colour = NA, alpha = 0.1) +
+  geom_point() +
+  scale_y_continuous(limits = c(0,11), breaks = seq(0, 11, by = 1)) +
+  geom_hline(aes(yintercept = median(df_wt_long$log2_expression)), linetype = "dashed") +
+  theme_bw()
 ```
 
