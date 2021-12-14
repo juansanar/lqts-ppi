@@ -358,7 +358,7 @@ hist_res <- hist(dai2012_medians, 100, col = "cornsilk1", freq = FALSE,
 In the histogram of the gene-wise medians (Figure 8), we can clearly see an enrichment of low medians on the left hand side. These represent the genes we want to filter. In order to infer a cutoff from the data, we inspect the histogram: We visually set a cutoff line man_threshold to the left of the histogram peak in order not to exclude too many genes. In our example, we choose a threshold of 4. We plot the same histogram as before and add the threshold line with the abline() function:
 
 ```{r filtering-02, include=TRUE}
-man_threshold <- 4
+man_threshold <- 3.5
 
 hist_res <- hist(dai2012_medians, 100, col = "cornsilk", freq = FALSE, 
             main = "Histogram of the median intensities",
@@ -406,8 +406,11 @@ Before we continue with the linear models for microarrays and differential expre
 # library(pd.mouse430.2)
 # head(ls("package:pd.mouse430.2"))
 
-BiocManager::install("mouse4302.db")
+if(!require("mouse4302.db"))
+   BiocManager::install("mouse4302.db")
+
 library(mouse4302.db)
+
 head(ls("package:mouse4302.db"))
 ```
 
@@ -544,5 +547,37 @@ df_wt_lqts %>% group_by(gene_symbol) %>%
   scale_y_continuous(limits = c(0,11), breaks = seq(0, 11, by = 1)) +
   geom_hline(aes(yintercept = median(df_wt_long$log2_expression)), linetype = "dashed") +
   theme_bw()
+```
+```{r}
+if(!require("MetBrewer"))
+  devtools::install_github("BlakeRMills/MetBrewer")
+
+troy <- MetBrewer::met.brewer(name="Troy",n=12,type="continuous")
+
+df_wt_lqts %>% 
+  group_by(gene_symbol) %>% 
+  summarise(log2_exp = mean(log2_expression), sd = sd(log2_expression)) %>%
+  arrange((log2_exp)) %>%
+  mutate(gene_symbol=factor(gene_symbol, levels=gene_symbol)) %>%
+  ggplot(aes(gene_symbol, log2_exp, fill = gene_symbol)) + 
+  geom_col() +
+  scale_y_continuous(limits = c(0,10.5), breaks = seq(0, 10.5, by = 1)) +
+  scale_fill_manual(values = rev(troy))+
+  geom_hline(aes(yintercept = median(df_wt_long$log2_expression)), linetype = "dashed") +
+  theme_bw() +
+  theme(legend.position = "none") +
+  ylab(label = "log2(expression value)") +
+  xlab(label = "LQTS gene") +
+  labs(title = "Transcript log2 expression values of\nLQTS associated genes in cardiac neural crest cells", 
+       caption = "Source: Deposited data by Dai et al., 2012") +
+  theme(axis.text.y = element_text(face = "italic"),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 12)) +
+  geom_label(aes(2, median(df_wt_long$log2_expression, digits = 2),
+                 label = paste0("Median value: ", 
+                                round(median(df_wt_long$log2_expression), digits = 2)),
+                 hjust = -0.05),
+             fill = "white") +
+  coord_flip()
 ```
 
