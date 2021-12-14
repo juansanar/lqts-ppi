@@ -24,7 +24,7 @@ GEO Accession ID: [GSE99551](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=
 library(tidyverse)
 ```
 
-## Reading files
+## Reading and tidying data
 
 ```{r loading-data-01, include=TRUE, warning=FALSE, message=FALSE}
 library(readr)
@@ -46,4 +46,47 @@ GPL6246_values_anno <- GPL6246_values %>%
   mutate(gene_symbol = case_when(ID_REF == GPL6246_anno_in$ID ~ GPL6246_anno_in$`Gene symbol`))
 ```
 
+## Getting LQTS genes
+
+```{r results-01, include=TRUE}
+GPL6246_lqts <- GPL6246_values_anno %>% filter(toupper(gene_symbol) == "ANK2"|
+                                    toupper(gene_symbol) == "KCNQ1"|
+                                    toupper(gene_symbol) == "KCNH2"|
+                                    toupper(gene_symbol) == "SCN5A"|
+                                    toupper(gene_symbol) == "KCNE1"|
+                                    toupper(gene_symbol) == "KCNE2"|
+                                    toupper(gene_symbol) == "KCNJ2"|
+                                    toupper(gene_symbol) == "CACNA1C"|
+                                    toupper(gene_symbol) == "CAV3"|
+                                    toupper(gene_symbol) == "SCN4B"|
+                                    toupper(gene_symbol) == "AKAP9"|
+                                    toupper(gene_symbol) == "SNTA1"|
+                                    toupper(gene_symbol) == "ALG10")
+```
+
+## Time to plot!
+
+```{r plot-01, include=TRUE}
+
+GPL6246_lqts %>% ggplot(aes(reorder(gene_symbol, VALUE, sum), VALUE, fill = reorder(gene_symbol, VALUE, sum))) + 
+  geom_col() +
+  scale_y_continuous(limits = c(0,11), breaks = seq(0, 11, by = 1)) +
+  scale_fill_manual(values = rev(troy)) +
+  geom_hline(aes(yintercept = median(GPL6246_lqts$VALUE)), linetype = "dashed") +
+  theme_bw() +
+  theme(legend.position = "none") +
+  ylab(label = "log2(expression value)") +
+  xlab(label = "LQTS gene") +
+  labs(title = "Transcript log2 expression values of\nLQTS associated genes in cardiac neural crest cells", 
+       caption = "Source: Deposited data by Arai et al., 2019") +
+  theme(axis.text.y = element_text(face = "italic"),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 12)) +
+  geom_label(aes(2, median(df_wt_long$log2_expression, digits = 2),
+                 label = paste0("Median value: ", 
+                                round(median(GPL6246_lqts$VALUE), digits = 2)),
+                 hjust = -0.15),
+             fill = "white") +
+  coord_flip()
+```
 
