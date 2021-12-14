@@ -17,7 +17,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Differential gene expression (DGE) analysis of Affymetrix microarrays of cardiac neural crest cells using Klaus B, Reisenauer S (2019). maEndToEnd: [An end to end workflow for differential gene expression using Affymetrix microarrays.](https://bioconductor.riken.jp/packages/3.9/workflows/html/maEndToEnd.html) Bioconductor workflow.
 
-All text below correspond to the above workflow and only small changes were made to adapt it to the dataset used for the main pruporse of this Rmarkdown document (analyzing cardiac neural crest cells microaaray data from Dai et al. 2012 [*E-GEOD-41179*] and cardiac outflow tract cells from Robrini et al., 2015 [*E-GEOD-64556*])
+All text below correspond to the above workflow and only small changes were made to adapt it to the dataset used for the main pruporse of this Rmarkdown document (analyzing E10.5 cardiac neural crest cells microaaray data from Dai et al. 2012 [*E-GEOD-41179*] ~~and cardiac outflow tract cells from Robrini et al., 2015 [*E-GEOD-64556*]~~)
 
 ```{r main-package, include=FALSE}
 
@@ -568,7 +568,7 @@ df_wt_lqts %>%
   theme(legend.position = "none") +
   ylab(label = "log2(expression value)") +
   xlab(label = "LQTS gene") +
-  labs(title = "Transcript log2 expression values of\nLQTS associated genes in cardiac neural crest cells", 
+  labs(title = "Transcript log2 expression values of\nLQTS associated genes in E10.5 cardiac neural crest cells", 
        caption = "Source: Deposited data by Dai et al., 2012") +
   theme(axis.text.y = element_text(face = "italic"),
         axis.text = element_text(size = 12),

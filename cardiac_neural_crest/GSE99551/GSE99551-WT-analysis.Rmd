@@ -77,7 +77,7 @@ GPL6246_lqts %>% ggplot(aes(reorder(gene_symbol, VALUE, sum), VALUE, fill = reor
   theme(legend.position = "none") +
   ylab(label = "log2(expression value)") +
   xlab(label = "LQTS gene") +
-  labs(title = "Transcript log2 expression values of\nLQTS associated genes in cardiac neural crest cells", 
+  labs(title = "Transcript log2 expression values of\nLQTS associated genes in E14.5 cardiac neural crest cells", 
        caption = "Source: Deposited data by Arai et al., 2019") +
   theme(axis.text.y = element_text(face = "italic"),
         axis.text = element_text(size = 12),
