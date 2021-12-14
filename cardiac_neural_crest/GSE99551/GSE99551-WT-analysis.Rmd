@@ -1,0 +1,49 @@
+---
+title: "GSE99551 analysis"
+author: "Juan C. Sanchez-Arias"
+date: "14/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Dataset information
+GEO Accession ID: [GSE99551](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE99551).
+- Title: "Gene expression analysis of WT and Adam19KO cardiac neural crest cells".
+- Contributors: Arai H, Yamamoto T, Sehara-Fujisawa A.
+- Associated paper: Arai HN, Sato F, Yamamoto T, Woltjen K et al. Metalloprotease-Dependent Attenuation of BMP Signaling Restricts Cardiac Neural Crest Cell Fate. Cell Rep 2019 Oct 15;29(3):603-616.e5. [PMID: 31618630](https://www.ncbi.nlm.nih.gov/pubmed/31618630).
+- Files available:
+  - GPL6246-18741.txt
+  - GPL6246.annot
+  - GPL6246.txt
+  - log2_rma_values.txt
+
+```{r libraries, include=TRUE, warning=FALSE, message=FALSE, echo=FALSE}
+library(tidyverse)
+```
+
+## Reading files
+
+```{r loading-data-01, include=TRUE, warning=FALSE, message=FALSE}
+library(readr)
+GPL6246_anno <- read_delim("GPL6246.txt", 
+    delim = "\t", escape_double = FALSE, 
+    col_types = cols_only(ID = col_guess(),
+                          `Gene symbol` = col_guess()), trim_ws = TRUE)
+
+GPL6246_values <- read_delim("log2_rma_values.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE)
+
+## Annotating data frame with gene symbols
+GPL6246_anno_in <- GPL6246_anno %>% mutate(ma_present = GPL6246_anno$ID %in% GPL6246_values$ID_REF)
+
+GPL6246_anno_in <- GPL6246_anno_in %>% filter(!GPL6246_anno_in$ma_present == FALSE)
+
+GPL6246_values_anno <- GPL6246_values %>% 
+  mutate(gene_symbol = case_when(ID_REF == GPL6246_anno_in$ID ~ GPL6246_anno_in$`Gene symbol`))
+```
+
+
