@@ -146,6 +146,7 @@ if (is.null(dbs)) websiteLive <- FALSE
 if (websiteLive) head(dbs)
 
 dbs <- c("GO_Molecular_Function_2021", "GO_Cellular_Component_2021", "GO_Biological_Process_2021")
+
 if (websiteLive) {
   ank2_go_enriched <- enrichr(biogrid[["ANK2"]], dbs)
 }
@@ -157,14 +158,46 @@ if (websiteLive) {
 
 if (websiteLive) enriched[["GO_Molecular_Function_2015"]]
 
-ank2_go_mol_plot <- if (websiteLive) plotEnrich(ank2_go_enriched[[1]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+ank2_go_mol_plot <- if (websiteLive) 
+  plotEnrich(ank2_go_enriched[[1]], 
+             showTerms = 20, 
+             numChar = 40, 
+             y = "Count", 
+             orderBy = "P.value",
+             ylab = "Interactor count",
+             xlab = "GO molecular function terms",
+             title = "ANK2 GO molecular function enrichment analysis")
 
-ank2_go_com_plot <- if (websiteLive) plotEnrich(ank2_go_enriched[[2]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+ank2_go_com_plot <- if (websiteLive) 
+  plotEnrich(ank2_go_enriched[[2]], 
+             showTerms = 20, 
+             numChar = 40, 
+             y = "Count", 
+             orderBy = "P.value",
+             ylab = "Interactor count",
+             xlab = "GO molecular function terms",
+             title = "ANK2 GO cellular component enrichment analysis")
 
-ank2_go_pro_plot <- if (websiteLive) plotEnrich(ank2_go_enriched[[3]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+ank2_go_pro_plot <- if (websiteLive) 
+  plotEnrich(ank2_go_enriched[[3]], 
+             showTerms = 20, 
+             numChar = 40, 
+             y = "Count", 
+             orderBy = "P.value",
+             ylab = "Interactor count",
+             xlab = "GO molecular function terms",
+             title = "KCNQ1 GO molecular process enrichment analysis")
 
 # KEGG
-ank2_kegg_plot <- if (websiteLive) plotEnrich(ank2_enriched_kegg[[1]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+ank2_kegg_plot <- if (websiteLive) 
+  plotEnrich(ank2_enriched_kegg[[1]], 
+             showTerms = 20, 
+             numChar = 40, 
+             y = "Count", 
+             orderBy = "P.value",
+             ylab = "Interactor count",
+             xlab = "GO molecular function terms",
+             title = "ANK2 KEGG enrichment analysis")
 
 # KCNQ1 ####
 if (websiteLive) {
@@ -181,15 +214,38 @@ kcnq1_go_mol_plot <- if (websiteLive)
              xlab = "GO molecular function terms",
              title = "KCNQ1 GO molecular function enrichment analysis")
 
-kcnq1_go_com_plot <- if (websiteLive) plotEnrich(kcnq1_go_enriched[[2]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+kcnq1_go_com_plot <- if (websiteLive) 
+  plotEnrich(kcnq1_go_enriched[[2]], 
+             showTerms = 20, numChar = 40, 
+             y = "Count", 
+             orderBy = "P.value",
+             ylab = "Interactor count",
+             xlab = "GO molecular function terms",
+             title = "KCNQ1 GO cellular component enrichment analysis")
 
-kcnq1_go_pro_plot <- if (websiteLive) plotEnrich(kcnq1_go_enriched[[3]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+kcnq1_go_pro_plot <- if (websiteLive) 
+  plotEnrich(kcnq1_go_enriched[[3]], 
+             showTerms = 20, 
+             numChar = 40, 
+             y = "Count", 
+             orderBy = "P.value",
+             ylab = "Interactor count",
+             xlab = "GO molecular function terms",
+             title = "KCNQ1 GO molecular process enrichment analysis")
 
 if (websiteLive) {
   kcnq1_enriched_kegg <- enrichr(biogrid[["KCNQ1"]], dbs_kegg)
 }
 
-kcnq1_kegg_plot <- if (websiteLive) plotEnrich(kcnq1_enriched_kegg[[1]], showTerms = 20, numChar = 40, y = "Count", orderBy = "P.value")
+kcnq1_kegg_plot <- if (websiteLive) 
+  plotEnrich(kcnq1_enriched_kegg[[1]], 
+             showTerms = 20, 
+             numChar = 40, 
+             y = "Count", 
+             orderBy = "P.value",
+             ylab = "Interactor count",
+             xlab = "GO molecular function terms",
+             title = "KCNQ1 KEGG enrichment analysis")
 
 cowplot::plot_grid(ank2_go_com_plot, kcnq1_go_com_plot)
 
