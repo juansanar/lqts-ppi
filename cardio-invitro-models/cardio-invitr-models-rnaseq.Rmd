@@ -1,0 +1,56 @@
+---
+title: "Cardiac in vitro models transcriptomics (Onodi et al., 2022)"
+author: "Juan C. Sanchez-Arias"
+date: "16/03/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+[Onodi et al., 2022](https://doi.org/10.1016/j.yjmcc.2021.12.007) described the similarities and differences in gene expression profiles between human and murine cardiac myocyte cell lines and human adult cardiac tissue using bulk RNA-seq. The data has been deposited in ArrayExpress and it is available for mining. Overall, cardiac myocyte cell lines do not fully recapitulate primary cardiomyocyte tissue (as expected); however, differentiated hiPSCs and neonatal cardiomyocyte (at 3 *days-in-vitro*) are decent models for their respective systems. 
+
+Load necessary packages for subsequent analysis
+```{r other-packages, include=TRUE}
+
+#General Bioconductor packages
+    library(Biobase)
+    library(oligoClasses)
+     
+#Annotation and data import packages
+    library(ArrayExpress)
+    library(pd.hugene.1.0.st.v1)
+    library(hugene10sttranscriptcluster.db)
+     
+#Quality control and pre-processing packages
+    library(oligo)
+    library(arrayQualityMetrics)
+     
+#Analysis and statistics packages
+    library(limma)
+    library(topGO)
+    library(ReactomePA)
+    library(clusterProfiler)
+     
+#Plotting and color options packages
+    library(gplots)
+    library(ggplot2)
+    library(geneplotter)
+    library(RColorBrewer)
+    library(pheatmap)
+    library(enrichplot)
+     
+#Formatting/documentation packages
+   #library(rmarkdown)
+   #library(BiocStyle)
+    library(dplyr)
+    library(tidyr)
+
+#Helpers:
+    library(stringr)
+    library(matrixStats)
+    library(genefilter)
+    library(openxlsx)
+
+```

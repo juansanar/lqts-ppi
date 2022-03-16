@@ -29,7 +29,7 @@ BiocManager::install("maEndToEnd")
 ```{r main-package-import, include=TRUE}
 suppressPackageStartupMessages({library("maEndToEnd")})
 ```
-
+Load necessary packages for subsequent analysis
 ```{r other-packages, include=TRUE}
 
 #General Bioconductor packages
