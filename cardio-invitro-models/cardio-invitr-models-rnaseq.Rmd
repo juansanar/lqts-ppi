@@ -9,10 +9,13 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-[Onodi et al., 2022](https://doi.org/10.1016/j.yjmcc.2021.12.007) described the similarities and differences in gene expression profiles between human and murine cardiac myocyte cell lines and human adult cardiac tissue using bulk RNA-seq. The data has been deposited in ArrayExpress and it is available for mining. Overall, cardiac myocyte cell lines do not fully recapitulate primary cardiomyocyte tissue (as expected); however, differentiated hiPSCs and neonatal cardiomyocyte (at 3 *days-in-vitro*) are decent models for their respective systems. 
+[Onodi et al., 2022](https://doi.org/10.1016/j.yjmcc.2021.12.007) described the similarities and differences in gene expression profiles between human and murine cardiac myocyte cell lines and human adult cardiac tissue using bulk RNA-seq. The data has been deposited in ArrayExpress and it is available for mining. Overall, cardiac myocyte cell lines do not fully recapitulate primary cardiomyocyte tissue (as expected); however, differentiated hiPSCs and neonatal cardiomyocyte (at 3 *days-in-vitro*) are decent models for their respective systems.
+
+## 1. Set up
 
 Load necessary packages for subsequent analysis
-```{r other-packages, include=TRUE}
+
+```{r other-packages, include=TRUE, warning=FALSE}
 
 #General Bioconductor packages
     library(Biobase)
@@ -54,3 +57,76 @@ Load necessary packages for subsequent analysis
     library(openxlsx)
 
 ```
+
+## 2. Downloading data from ArrayExpress
+
+Onodi et al. (2022) deposited data per species analyzed as shown below:
+
+-   *Homo sapiens*: [E-MTAB-10720](https://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-10720/)
+-   *Rattus norvegicus*: [E-MTAB-10913](https://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-10913/)
+-   *Mus musculus*: [E-MTAB-10912](https://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-10912/)
+
+```{r raw-data-check, echo=TRUE}
+
+data_dir <- tempdir()
+
+if (!dir.exists(data_dir)) {
+    dir.create(data_dir)
+}
+```
+
+The function `getAE` downloads the data into the temporary directory (`data_dir`).
+
+```{r raw-data-import, include=TRUE, message=FALSE, warning=FALSE}
+
+anno_AE <- getAE("E-MTAB-10913", path = data_dir)
+```
+
+Each dataset in ArrayExpress is stored following MAGE-TAB (MicroArray Gene Expression Tabular) specifications:
+
+-   Investigation Description Format (IDF): contains top level information about the experiment including title, description, submitter contact details and protocols
+-   Array Design Format (ADF)
+-   Sample and Data Relationship Format (SDRF): contains essential information on the experimental samples, e.g. the experimental group(s) they belong to.
+-   Raw data files
+-   Processed data files
+
+## 3. Creating ExpressionSet with `Biobase`
+
+An `ExpressionSet` can be manipulated (e.g., subsetted, copied), and is the input to or output of many Bioconductor functions.
+
+The data in an `ExpressionSet` consist of:
+
+-   assayData: Expression data from microarray experiments with microarray probes in rows and sample identifiers in - columns
+-   metaData
+-   phenoData: A description of the samples in the experiment with sample identifiers in rows and description elements in columns; holds the content of the SDRF file
+-   featureData: metadata about the features on the chip or technology used for the experiment with same rows as assayData by default and freely assignable columns
+-   further annotations for the features, for example gene annotations from biomedical databases (annotation). experimentData: A flexible structure to describe the experiment.
+
+> The functions `pData` and `fData` extract the sample and feature annotation, respectively, from an ExpressionSet. The function `exprs` will return the expression data itself as a matrix.
+
+> The data deposited was normalized with DESeq2 (for more details regarding pre-processing see protocol [P-MTAB-113851](https://www.ebi.ac.uk/arrayexpress/protocols/1420244/?ref=E-MTAB-10913))
+
+```{r SDRF, include=TRUE}
+
+sdrf_location <- file.path(data_dir, anno_AE$sdrf)
+SDRF <- read.delim(sdrf_location)
+
+rownames(SDRF) <- SDRF$Assay.Name
+# SDRF <- AnnotatedDataFrame(SDRF)
+```
+
+
+```{r matrix-count-to-DESeq2}
+processedData_location <- file.path(data_dir, anno_AE$processedFiles)
+
+cts <- read.delim(processedData_location,comment.char="#", row.names = "Geneid")
+
+cts <- cts[6:20]
+```
+
+Creating an object with sample information (e.g., treatment, type, etc.)
+
+```{r sample-info-object, include=TRUE}
+
+```
+
