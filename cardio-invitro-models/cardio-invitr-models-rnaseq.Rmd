@@ -33,6 +33,7 @@ Load necessary packages for subsequent analysis
 #Analysis and statistics packages
     library(limma)
     library(topGO)
+    library(DESeq2)
     library(ReactomePA)
     library(clusterProfiler)
      
@@ -124,9 +125,139 @@ cts <- read.delim(processedData_location,comment.char="#", row.names = "Geneid")
 cts <- cts[6:20]
 ```
 
-Creating an object with sample information (e.g., treatment, type, etc.)
+Creating an object with sample information table `coldata` (e.g., treatment, type, etc.)
 
-```{r sample-info-object, include=TRUE}
+```{r sample-info-object-01, include=TRUE}
 
+celltype <- c("H9C2-undiff", "H9C2-undiff", "H9C2-undiff",
+              "H9C2-RA", "H9C2-RA", "H9C2-RA",
+              "NRCDM-DIV1", "NRCDM-DIV1", "NRCDM-DIV1",
+              "NRCDM-DIV3", "NRCDM-DIV3", "NRCDM-DIV3",
+              "adult rat heart", "adult rat heart", "adult rat heart"
+)
+
+dev.stage <- c("embryo", "embryo", "embryo",
+               "embryo", "embryo", "embryo",
+               "neonate", "neonate", "neonate",
+               "neonate", "neonate", "neonate",
+               "adult", "adult", "adult"
+    
+)
+    
+coldata <- data.frame(celltype, dev.stage, row.names = colnames(cts))
+
+coldata$celltype <- factor(coldata$celltype, levels = c("H9C2-undiff",
+                                                        "H9C2-RA",
+                                                        "NRCDM-DIV1", 
+                                                        "NRCDM-DIV3", 
+                                                        "adult rat heart"))
+```
+
+> It is absolutely critical that the columns of the count matrix and the rows of the column data (information about samples) are in the same order. DESeq2 will not make guesses as to which column of the count matrix belongs to which row of the column data, these must be provided to DESeq2 already in consistent order.
+
+```{r sample-info-object-01, include=TRUE, echo=TRUE}
+all(rownames(coldata) %in% colnames(cts))
+```
+With the count matrix, `cts`, and the sample information, `coldata`, we can construct a `DESeqDataSet`:
+
+```{r DESeqDataSet-01, include=TRUE}
+dds <- DESeqDataSetFromMatrix(countData = cts,
+                              colData = coldata,
+                              design = ~ celltype)
+
+# dds_h9c2 <- DESeqDataSetFromMatrix(countData = cts[1:6],
+#                               colData = subset(coldata, celltype == "H9C2-undiff" | celltype == "H9C2-RA"),
+#                               design = ~ celltype)
+# 
+# dds_h9c2
+```
+
+## 4. Pre-filtering
+
+While it is not necessary to pre-filter low count genes before running the DESeq2 functions, there are two reasons which make pre-filtering useful: by removing rows in which there are very few reads, we reduce the memory size of the dds data object, and we increase the speed of the transformation and testing functions within DESeq2. ere we perform a minimal pre-filtering to keep only rows that have at least 10 reads total. Note that more strict filtering to increase power is automatically applied via independent filtering on the mean of normalized counts within the results function.
+
+```{r pre-filtering, include=TRUE}
+keep <- rowSdDiffs(counts(dds)) >= 10
+dds <- dds[keep,]
+
+```
+
+## 5. Note on factor levels
+
+By default, R will choose a reference level for factors based on alphabetical order. Then, if you never tell the DESeq2 functions which level you want to compare against (e.g. which level represents the control group), the comparisons will be based on the alphabetical order of the levels. There are two solutions: you can either explicitly tell results which comparison to make using the contrast argument (this will be shown later), or you can explicitly set the factors levels. In order to see the change of reference levels reflected in the results names, you need to either run `DESeq` or `nbinomWaldTest`/`nbinomLRT` after the re-leveling operation. Setting the factor levels can be done in two ways, either using `factor` or using `relevel`:
+
+```{r factor-levels, include=TRUE}
+# dds$celltype <- factor(dds$celltype, 
+#                        levels = c(
+#                            #"adult rat heart", 
+#                            "H9C2-undiff", 
+#                            "H9C2-RA" 
+#                            #"NRCDM-DIV1",
+#                            #"NRCDM-DIV3"
+#                            ))
+
+# dds$celltype <- factor(ddsdes$celltype,
+#                        levels = c(
+#                            "adult rat heart",
+#                            "H9C2-undiff",
+#                            "H9C2-RA",
+#                            "NRCDM-DIV1",
+#                            "NRCDM-DIV3"
+#                            ))
+```
+
+## 6. Differential expression analysis
+
+The standard differential expression analysis steps are wrapped into a single function, `DESeq.` The estimation steps performed by this function are described below, in the manual page for `?DESeq` and in the Methods section of the `DESeq2` publication (Love, Huber, and Anders 2014).
+
+```{r de-analysis, include=TRUE}
+
+
+dds <- DESeq(dds)
+# res <- results(dds)
+# res
+res <- results(dds, contrast= c("celltype", "adult rat heart","NRCDM-DIV3"))
+res
+```
+## 7. p-values and adjusted p-values
+
+We can order our results table by the smallest *p* value:
+
+```{r p-value-sort, include=TRUE}
+resOrdered <- res[order(res$pvalue),]
+```
+
+We can summarize some basic tallies using the `summary` function.
+
+```{r summary-res, include=TRUE}
+summary(res)
+```
+### Log fold change shrinkage for visualization and ranking
+
+```{r lfc, include=TRUE}
+library(apeglm)
+
+resLFC <- lfcShrink(dds, coef="celltype_H9C2.RA_vs_H9C2.undiff", type="apeglm")
+resLFC
+```
+
+
+## 8. Exploring and exporting results
+
+### MA-plot
+
+In `DESeq2`, the function `plotMA` shows the log2 fold changes attributable to a given variable over the mean of normalized counts for all the samples in the `DESeqDataSet.` Points will be colored red if the adjusted p value is less than 0.1. Points which fall out of the window are plotted as open triangles pointing either up or down.
+
+```{r ma-plot-01, include=TRUE}
+plotMA(res, ylim=c(-2,2))
+```
+```{r ma-plot-01, include=TRUE}
+plotMA(resLFC, ylim=c(-2,2))
+```
+## Save table
+
+```{r write, include=TRUE}
+write.csv(as.data.frame(resOrdered), 
+          file="celltype_groups.csv")
 ```
 
