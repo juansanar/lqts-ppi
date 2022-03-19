@@ -216,7 +216,7 @@ The standard differential expression analysis steps are wrapped into a single fu
 dds <- DESeq(dds)
 # res <- results(dds)
 # res
-res <- results(dds, contrast= c("celltype", "adult rat heart","NRCDM-DIV3"))
+res <- results(dds, contrast= c("celltype", "H9C2-RA","H9C2-undiff"))
 res
 ```
 ## 7. p-values and adjusted p-values
