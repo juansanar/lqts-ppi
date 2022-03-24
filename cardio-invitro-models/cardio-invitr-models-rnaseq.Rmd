@@ -165,11 +165,15 @@ dds <- DESeqDataSetFromMatrix(countData = cts,
                               colData = coldata,
                               design = ~ celltype)
 
-# dds_h9c2 <- DESeqDataSetFromMatrix(countData = cts[1:6],
-#                               colData = subset(coldata, celltype == "H9C2-undiff" | celltype == "H9C2-RA"),
-#                               design = ~ celltype)
-# 
-# dds_h9c2
+dds_h9c2 <- DESeqDataSetFromMatrix(countData = cts[1:6],
+                              colData = subset(coldata, 
+                                               celltype == "H9C2-undiff" | celltype == "H9C2-RA"),
+                              design = ~ celltype)
+
+dds_nrcdm <- DESeqDataSetFromMatrix(countData = cts[7:12],
+                              colData = subset(coldata, 
+                                               celltype == "NRCDM-DIV1" | celltype == "NRCDM-DIV3"),
+                              design = ~ celltype)
 ```
 
 ## 4. Pre-filtering
@@ -180,6 +184,11 @@ While it is not necessary to pre-filter low count genes before running the DESeq
 keep <- rowSdDiffs(counts(dds)) >= 10
 dds <- dds[keep,]
 
+keep_h9c2 <- rowSdDiffs(counts(dds_h9c2)) >= 10
+dds_h9c2 <- dds_h9c2[keep_h9c2,]
+
+keep_nrcdm <- rowSdDiffs(counts(dds_nrcdm)) >= 10
+dds_nrcdm <- dds_nrcdm[keep_nrcdm,]
 ```
 
 ## 5. Note on factor levels
@@ -214,8 +223,14 @@ The standard differential expression analysis steps are wrapped into a single fu
 
 
 dds <- DESeq(dds)
+
+dds_h9c2 <- DESeq(dds_h9c2)
 # res <- results(dds)
 # res
+
+dds_nrcdm <- DESeq(dds_nrcdm)
+res_nrcdm <- results(dds, contrast= c("celltype", "NRCDM-DIV3","NRCDM-DIV1"))
+
 res <- results(dds, contrast= c("celltype", "H9C2-RA","H9C2-undiff"))
 res
 ```
@@ -225,6 +240,7 @@ We can order our results table by the smallest *p* value:
 
 ```{r p-value-sort, include=TRUE}
 resOrdered <- res[order(res$pvalue),]
+resOrdered_nrcdm <- res_nrcdm[order(res_nrcdm$pvalue),]
 ```
 
 We can summarize some basic tallies using the `summary` function.
@@ -254,10 +270,102 @@ plotMA(res, ylim=c(-2,2))
 ```{r ma-plot-01, include=TRUE}
 plotMA(resLFC, ylim=c(-2,2))
 ```
-## Save table
+## 9. Save table
 
 ```{r write, include=TRUE}
 write.csv(as.data.frame(resOrdered), 
-          file="celltype_groups.csv")
+          file="celltype_groups_H9c2Undiff-RA.csv")
+
+write.csv(as.data.frame(resOrdered_nrcdm), 
+          file="celltype_groups_nrcdm.csv")
+```
+
+## 10. Data transformation and visualization
+
+### Count data transformations
+
+DESEq2 operates on raw counts and use discrete distributions to test for differential expression. 
+
+For other downstream analyses – e.g. for visualization or clustering – it might be useful to work with transformed versions of the count data.
+
+Maybe the most obvious choice of transformation is the logarithm. Since count values for a gene can be zero in some conditions (and non-zero in others), some advocate the use of pseudocounts
+
+Alternatives transformations:
+
+- *Variance stabilizing transformations (VST)*
+- *Regularized logarithm or rlog*
+
+### Blind dispersion estimation
+
+### Extracting transformed values
+
+```{r transformation-01, include=TRUE}
+vsd <- vst(dds, blind=FALSE)
+rld <- rlog(dds, blind=FALSE)
+head(assay(vsd), 3)
+```
+```{r}
+
+vsd_h9c2 <- vst(dds_h9c2, blind=FALSE)
+rld_h9c2 <- rlog(dds_h9c2, blind=FALSE)
+head(assay(vsd_h9c2), 3)
+
+```
+
+### Variance stabilizing transformation
+
+### Regularized log transformation
+
+### Effects of transformations on the variance
+
+```{r transformation-02, include=TRUE}
+# this gives log2(n + 1)
+ntd <- normTransform(dds)
+library("vsn")
+meanSdPlot(assay(ntd))
+```
+
+## 11. QC
+
+### Heatmap of the count matrix
+
+```{r qc-01}
+library("pheatmap")
+select <- order(rowMeans(counts(dds,normalized=TRUE)),
+                decreasing=TRUE)[1:20]
+df <- as.data.frame(colData(dds)[,c("celltype")])
+rownames(df) <- colnames(ntd)
+pheatmap(assay(ntd)[select,], cluster_rows=FALSE, show_rownames=FALSE,
+         cluster_cols=FALSE, annotation_col=df)
+```
+```{r}
+pheatmap(assay(rld)[select,], cluster_rows=FALSE, show_rownames=FALSE,
+         cluster_cols=FALSE, annotation_col=df)
+```
+```{r}
+plotPCA(vsd, intgroup=c("celltype"))
+```
+```{r}
+write.csv(as.data.frame(assay(vsd)), 
+          file="celltype_groups_vsd.csv")
+```
+
+```{r}
+write.csv(as.data.frame(assay(dds)), 
+          file="celltype_groups_dds.csv")
+```
+
+```{r}
+write.csv(as.data.frame(assay(rld)), 
+          file="celltype_groups_rld.csv")
+```
+
+```{r}
+library(EnhancedVolcano)
+
+ EnhancedVolcano(res,
+    lab = rownames(res),
+    x = 'log2FoldChange',
+    y = 'pvalue')
 ```
 
