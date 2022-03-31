@@ -41,56 +41,56 @@ library(tidyverse)
 ```{r ank2-query-01, include = TRUE, echo=FALSE}
 # accession numbers of ANK2 (ankyrin b)
     drawProteins::get_features("Q01484") ->
-    rel_json
+    ank2_json
 ```
  
  - Turning json data into a dataframe
  
 ```{r ank2-query-02, include=TRUE}
-drawProteins::feature_to_dataframe(rel_json) -> rel_data
+drawProteins::feature_to_dataframe(ank2_json) -> ank2
 
-head(rel_data[1:4])
+head(ank2[1:4])
 ```
  
 ## Let's draw!
 Let's start with a blank canvas
 ```{r ank2-draw-01, include=TRUE}
 # Blank canvas
-draw_canvas(rel_data) -> p
+draw_canvas(ank2) -> p
 p
 ```
 Now let's draw a chain of aminoacids:
 
 ```{r ank2-draw-02, include=TRUE}
-p <- draw_chains(p, rel_data)
+p <- draw_chains(p, ank2)
 p
 ```
 
 Now let's add the domains:
 
 ```{r ank2-darw-03, include=TRUE}
-p <- draw_domains(p, rel_data)
+p <- draw_domains(p, ank2)
 p
 ```
-Let's update the domains with some tidyvesde magic
+Let's update the domains with some tidyverse magic
 
 ![](https://encyclopedia.pub/media/item_content/202106/60b89c8560a03biomolecules-10-00211-g001-550.jpg)
 
 ```{r ank2-darw-04, include=TRUE}
 # Updating domains
-rel_data_domains <- rel_data %>% filter(type == "DOMAIN") 
+ank2_domains <- ank2 %>% filter(type == "DOMAIN") 
 
 ank2_mbd <- c("DOMAIN", "MBD", 30, 822, 792, "Q01484", "ANK2_HUMAN", 9606, 1)
 
-names(ank2_mbd) <- names(rel_data_domains)
+names(ank2_mbd) <- names(ank2_domains)
 
 ank2_reg <- c("DOMAIN", "REG", 30, 822, 792, "Q01484", "ANK2_HUMAN", 9606, 1)
 
-rel_data_domains <- rbind(rel_data_domains, ank2_mbd)
+ank2_domains <- rbind(ank2_domains, ank2_mbd)
 
-rel_data_domains <- type.convert(rel_data_domains)
+ank2_domains <- type.convert(ank2_domains)
 
-p2 <- draw_domains(p, rel_data_domains)
+p2 <- draw_domains(p, ank2_domains)
 p2
 ```
 
