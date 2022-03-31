@@ -6,7 +6,7 @@ library(UpSetR)
 library(enrichR)
 
 # Set up working directory
-setwd("~/GitHub/lqts-ppi")
+# setwd("~/GitHub/lqts-ppi")
 
 # Set up urls and access key ####
 base_url <- 'https://webservice.thebiogrid.org'
@@ -145,7 +145,7 @@ dbs <- listEnrichrDbs()
 if (is.null(dbs)) websiteLive <- FALSE
 if (websiteLive) head(dbs)
 
-dbs <- c("GO_Molecular_Function_2021", "GO_Cellular_Component_2021", "GO_Biological_Process_2021")
+dbs <- c("GO_Molecular_Function_2018", "GO_Cellular_Component_2018", "GO_Biological_Process_2018")
 
 if (websiteLive) {
   ank2_go_enriched <- enrichr(biogrid[["ANK2"]], dbs)
@@ -160,33 +160,54 @@ if (websiteLive) enriched[["GO_Molecular_Function_2015"]]
 
 ank2_go_mol_plot <- if (websiteLive) 
   plotEnrich(ank2_go_enriched[[1]], 
-             showTerms = 20, 
-             numChar = 40, 
+             showTerms = 30, 
+             numChar = 100, 
              y = "Count", 
              orderBy = "P.value",
              ylab = "Interactor count",
              xlab = "GO molecular function terms",
-             title = "ANK2 GO molecular function enrichment analysis")
+             title = "ANK2 PPI GO molecular function enrichment analysis")
 
 ank2_go_com_plot <- if (websiteLive) 
   plotEnrich(ank2_go_enriched[[2]], 
-             showTerms = 20, 
-             numChar = 40, 
+             showTerms = 30, 
+             numChar = 100, 
              y = "Count", 
              orderBy = "P.value",
              ylab = "Interactor count",
              xlab = "GO molecular function terms",
-             title = "ANK2 GO cellular component enrichment analysis")
+             title = "ANK2 PPI GO cellular component enrichment analysis")
 
 ank2_go_pro_plot <- if (websiteLive) 
   plotEnrich(ank2_go_enriched[[3]], 
-             showTerms = 20, 
-             numChar = 40, 
+             showTerms = 30, 
+             numChar = 50, 
              y = "Count", 
              orderBy = "P.value",
              ylab = "Interactor count",
              xlab = "GO molecular function terms",
-             title = "KCNQ1 GO molecular process enrichment analysis")
+             title = "ANK2 PPI GO molecular process enrichment analysis")
+
+ggsave("ank2_go_mol.png",
+       ank2_go_mol_plot,
+       height = 5,
+       width = 8.25,
+       units = "in",
+       dpi = 300)
+
+ggsave("ank2_go_pro.png",
+       ank2_go_pro_plot,
+       height = 5,
+       width = 8.25,
+       units = "in",
+       dpi = 300)
+
+ggsave("ank2_go_com.png",
+       ank2_go_com_plot,
+       height = 5,
+       width = 8.25,
+       units = "in",
+       dpi = 300)
 
 # KEGG
 ank2_kegg_plot <- if (websiteLive) 
