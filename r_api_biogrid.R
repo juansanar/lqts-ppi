@@ -212,13 +212,20 @@ ggsave("ank2_go_com.png",
 # KEGG
 ank2_kegg_plot <- if (websiteLive) 
   plotEnrich(ank2_enriched_kegg[[1]], 
-             showTerms = 20, 
-             numChar = 40, 
+             showTerms = 30, 
+             numChar = 50, 
              y = "Count", 
              orderBy = "P.value",
              ylab = "Interactor count",
-             xlab = "GO molecular function terms",
+             xlab = "KEGG terms",
              title = "ANK2 KEGG enrichment analysis")
+
+ggsave("ank2_kegg.png",
+       ank2_kegg_plot,
+       height = 5,
+       width = 8.25,
+       units = "in",
+       dpi = 300)
 
 # KCNQ1 ####
 if (websiteLive) {
