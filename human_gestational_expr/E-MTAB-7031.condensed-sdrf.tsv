@@ -1,0 +1,54 @@
+E-MTAB-7031		ERR2704712	characteristic	developmental stage	gestational week 12
+E-MTAB-7031		ERR2704712	characteristic	disease	normal	http://purl.obolibrary.org/obo/PATO_0000461
+E-MTAB-7031		ERR2704712	characteristic	organism	Homo sapiens	http://purl.obolibrary.org/obo/NCBITaxon_9606
+E-MTAB-7031		ERR2704712	characteristic	organism part	heart	http://purl.obolibrary.org/obo/UBERON_0000948
+E-MTAB-7031		ERR2704712	characteristic	sex	male	http://purl.obolibrary.org/obo/PATO_0000384
+E-MTAB-7031		ERR2704712	factor	developmental stage	gestational week 12
+E-MTAB-7031		ERR2704713	characteristic	developmental stage	gestational week 12
+E-MTAB-7031		ERR2704713	characteristic	disease	normal	http://purl.obolibrary.org/obo/PATO_0000461
+E-MTAB-7031		ERR2704713	characteristic	organism	Homo sapiens	http://purl.obolibrary.org/obo/NCBITaxon_9606
+E-MTAB-7031		ERR2704713	characteristic	organism part	heart	http://purl.obolibrary.org/obo/UBERON_0000948
+E-MTAB-7031		ERR2704713	characteristic	sex	female	http://purl.obolibrary.org/obo/PATO_0000383
+E-MTAB-7031		ERR2704713	factor	developmental stage	gestational week 12
+E-MTAB-7031		ERR2704714	characteristic	developmental stage	gestational week 12
+E-MTAB-7031		ERR2704714	characteristic	disease	normal	http://purl.obolibrary.org/obo/PATO_0000461
+E-MTAB-7031		ERR2704714	characteristic	organism	Homo sapiens	http://purl.obolibrary.org/obo/NCBITaxon_9606
+E-MTAB-7031		ERR2704714	characteristic	organism part	heart	http://purl.obolibrary.org/obo/UBERON_0000948
+E-MTAB-7031		ERR2704714	characteristic	sex	male	http://purl.obolibrary.org/obo/PATO_0000384
+E-MTAB-7031		ERR2704714	factor	developmental stage	gestational week 12
+E-MTAB-7031		ERR2704715	characteristic	developmental stage	gestational week 16
+E-MTAB-7031		ERR2704715	characteristic	disease	normal	http://purl.obolibrary.org/obo/PATO_0000461
+E-MTAB-7031		ERR2704715	characteristic	organism	Homo sapiens	http://purl.obolibrary.org/obo/NCBITaxon_9606
+E-MTAB-7031		ERR2704715	characteristic	organism part	heart	http://purl.obolibrary.org/obo/UBERON_0000948
+E-MTAB-7031		ERR2704715	characteristic	sex	male	http://purl.obolibrary.org/obo/PATO_0000384
+E-MTAB-7031		ERR2704715	factor	developmental stage	gestational week 16
+E-MTAB-7031		ERR2704716	characteristic	developmental stage	gestational week 16
+E-MTAB-7031		ERR2704716	characteristic	disease	normal	http://purl.obolibrary.org/obo/PATO_0000461
+E-MTAB-7031		ERR2704716	characteristic	organism	Homo sapiens	http://purl.obolibrary.org/obo/NCBITaxon_9606
+E-MTAB-7031		ERR2704716	characteristic	organism part	heart	http://purl.obolibrary.org/obo/UBERON_0000948
+E-MTAB-7031		ERR2704716	characteristic	sex	male	http://purl.obolibrary.org/obo/PATO_0000384
+E-MTAB-7031		ERR2704716	factor	developmental stage	gestational week 16
+E-MTAB-7031		ERR2704717	characteristic	developmental stage	gestational week 16
+E-MTAB-7031		ERR2704717	characteristic	disease	normal	http://purl.obolibrary.org/obo/PATO_0000461
+E-MTAB-7031		ERR2704717	characteristic	organism	Homo sapiens	http://purl.obolibrary.org/obo/NCBITaxon_9606
+E-MTAB-7031		ERR2704717	characteristic	organism part	heart	http://purl.obolibrary.org/obo/UBERON_0000948
+E-MTAB-7031		ERR2704717	characteristic	sex	female	http://purl.obolibrary.org/obo/PATO_0000383
+E-MTAB-7031		ERR2704717	factor	developmental stage	gestational week 16
+E-MTAB-7031		ERR2704718	characteristic	developmental stage	gestational week 9
+E-MTAB-7031		ERR2704718	characteristic	disease	normal	http://purl.obolibrary.org/obo/PATO_0000461
+E-MTAB-7031		ERR2704718	characteristic	organism	Homo sapiens	http://purl.obolibrary.org/obo/NCBITaxon_9606
+E-MTAB-7031		ERR2704718	characteristic	organism part	heart	http://purl.obolibrary.org/obo/UBERON_0000948
+E-MTAB-7031		ERR2704718	characteristic	sex	female	http://purl.obolibrary.org/obo/PATO_0000383
+E-MTAB-7031		ERR2704718	factor	developmental stage	gestational week 9
+E-MTAB-7031		ERR2704719	characteristic	developmental stage	gestational week 9
+E-MTAB-7031		ERR2704719	characteristic	disease	normal	http://purl.obolibrary.org/obo/PATO_0000461
+E-MTAB-7031		ERR2704719	characteristic	organism	Homo sapiens	http://purl.obolibrary.org/obo/NCBITaxon_9606
+E-MTAB-7031		ERR2704719	characteristic	organism part	heart	http://purl.obolibrary.org/obo/UBERON_0000948
+E-MTAB-7031		ERR2704719	characteristic	sex	male	http://purl.obolibrary.org/obo/PATO_0000384
+E-MTAB-7031		ERR2704719	factor	developmental stage	gestational week 9
+E-MTAB-7031		ERR2704720	characteristic	developmental stage	gestational week 9
+E-MTAB-7031		ERR2704720	characteristic	disease	normal	http://purl.obolibrary.org/obo/PATO_0000461
+E-MTAB-7031		ERR2704720	characteristic	organism	Homo sapiens	http://purl.obolibrary.org/obo/NCBITaxon_9606
+E-MTAB-7031		ERR2704720	characteristic	organism part	heart	http://purl.obolibrary.org/obo/UBERON_0000948
+E-MTAB-7031		ERR2704720	characteristic	sex	female	http://purl.obolibrary.org/obo/PATO_0000383
+E-MTAB-7031		ERR2704720	factor	developmental stage	gestational week 9

@@ -1,0 +1,170 @@
+---
+title: "human_gest_cardiac_exprs"
+author: "Juan C. Sanchez-Arias"
+date: "31/03/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Set up
+
+Load necessary packages for subsequent analysis
+
+```{r other-packages, include=TRUE, warning=FALSE}
+
+#General Bioconductor packages
+    library(Biobase)
+    library(oligoClasses)
+     
+#Annotation and data import packages
+    library(ArrayExpress)
+    library(pd.hugene.1.0.st.v1)
+    library(hugene10sttranscriptcluster.db)
+     
+#Quality control and pre-processing packages
+    library(oligo)
+    library(arrayQualityMetrics)
+     
+#Analysis and statistics packages
+    library(limma)
+    library(topGO)
+    library(DESeq2)
+    library(ReactomePA)
+    library(clusterProfiler)
+     
+#Plotting and color options packages
+    library(gplots)
+    library(ggplot2)
+    library(geneplotter)
+    library(RColorBrewer)
+    library(pheatmap)
+    library(enrichplot)
+     
+#Formatting/documentation packages
+   #library(rmarkdown)
+   #library(BiocStyle)
+    library(dplyr)
+    library(tidyr)
+
+#Helpers:
+    library(stringr)
+    library(matrixStats)
+    library(genefilter)
+    library(openxlsx)
+
+```
+
+## 2. Downloading data from ArrayExpress
+
+```{r raw-data-check, echo=TRUE}
+
+data_dir <- tempdir()
+
+if (!dir.exists(data_dir)) {
+    dir.create(data_dir)
+}
+```
+
+The function `getAE` downloads the data into the temporary directory (`data_dir`).
+
+```{r raw-data-import, include=TRUE, message=FALSE, warning=FALSE}
+
+anno_AE <- getAE("E-MTAB-7031", path = data_dir)
+```
+
+Each dataset in ArrayExpress is stored following MAGE-TAB (MicroArray Gene Expression Tabular) specifications:
+
+-   Investigation Description Format (IDF): contains top level information about the experiment including title, description, submitter contact details and protocols
+-   Array Design Format (ADF)
+-   Sample and Data Relationship Format (SDRF): contains essential information on the experimental samples, e.g. the experimental group(s) they belong to.
+-   Raw data files
+-   Processed data files
+
+## 3. Creating ExpressionSet with `Biobase`
+
+An `ExpressionSet` can be manipulated (e.g., subsetted, copied), and is the input to or output of many Bioconductor functions.
+
+The data in an `ExpressionSet` consist of:
+
+-   assayData: Expression data from microarray experiments with microarray probes in rows and sample identifiers in - columns
+-   metaData
+-   phenoData: A description of the samples in the experiment with sample identifiers in rows and description elements in columns; holds the content of the SDRF file
+-   featureData: metadata about the features on the chip or technology used for the experiment with same rows as assayData by default and freely assignable columns
+-   further annotations for the features, for example gene annotations from biomedical databases (annotation). experimentData: A flexible structure to describe the experiment.
+
+> The functions `pData` and `fData` extract the sample and feature annotation, respectively, from an ExpressionSet. The function `exprs` will return the expression data itself as a matrix.
+
+```{r SDRF, include=TRUE}
+
+sdrf_location <- file.path(data_dir, anno_AE$sdrf)
+SDRF <- read.delim(sdrf_location)
+
+rownames(SDRF) <- SDRF$Scan.Name
+# SDRF <- AnnotatedDataFrame(SDRF)
+```
+
+```{r, include=TRUE}
+
+cts <- read.delim("E-MTAB-7031-raw-counts.tsv", row.names = 1)
+
+gene.names <- cts$Gene.Name
+
+cts <- cts[,-c(1)]
+
+colID <- c("ERR2704715", "ERR2704716", "ERR2704714", "ERR2704720", "ERR2704719", "ERR2704713", "ERR2704717", "ERR2704718", "ERR2704712")
+
+dev.stage <- c("16 WGA", "16 WGA", "14 WGA", "9 WGA", "9 WGA", "12 WGA", "16 WGA", "9WGA", "12 WGA")
+
+coldata <- data.frame(colID, dev.stage, row.names = colnames(cts))
+```
+
+```{r}
+cts_2 <- cts[, -c(3, 6, 9)]
+
+colID_2 <- c("ERR2704715", "ERR2704716", "ERR2704720", "ERR2704719", "ERR2704717", "ERR2704718")
+
+dev.stage_2 <- c("16 WGA", "16 WGA", "9 WGA", "9 WGA", "16 WGA", "9WGA")
+
+coldata_2 <- data.frame(colID_2, dev.stage_2, row.names = colnames(cts_2))
+```
+
+```{r DESeqDataSet-01, include=TRUE}
+dds <- DESeqDataSetFromMatrix(countData = cts,
+                              colData = coldata,
+                              design = ~ dev.stage)
+rld <- rlog(dds, blind=FALSE)
+```
+
+```{r DESeqDataSet-01, include=TRUE}
+dds_2 <- DESeqDataSetFromMatrix(countData = cts_2,
+                              colData = coldata_2,
+                              design = ~ dev.stage_2)
+```
+
+```{r}
+dds_2 <- DESeq(dds_2)
+
+dds <- DESeq(dds)
+```
+
+```{r}
+res <- results(dds, contrast= c("dev.stage", "16 WGA","9 WGA"))
+res
+```
+```{r}
+resOrdered <- res[order(res$pvalue),]
+```
+
+```{r write, include=TRUE}
+write.csv(as.data.frame(resOrdered), 
+          file="human_wga_16_9.csv")
+```
+
+```{r}
+write.csv(as.data.frame(assay(rld)), 
+          file="human_gest_Cardiac_expr_rld.csv")
+```
+
