@@ -66,8 +66,8 @@ p + geom_rect(data = ank2[ank2$type == "CHAIN",], aes(xmin = begin, xmax = end,
   geom_segment(aes(x = 1988, xend = 1988, y = 1.03, yend = 1.15), size = 0.75) +
   geom_point(aes(x = 1988, y = 1.16), size=3, color="red", fill=alpha("orange", 0.3), alpha=0.7, shape=21, stroke=1.5) +
   # R2608fs - ASD
-  geom_segment(aes(x = 2608, xend = 2608, y = 0.97, yend = 0.85), size = 0.75) +
-  geom_point(aes(x = 2608, y = 0.84), size=3, color="darkblue", fill=alpha("cyan", 0.3), alpha=0.7, shape=21, stroke=1.5) +
+  geom_segment(aes(x = 2608, xend = 2608, y = 1.03, yend = 1.15), size = 0.75) +
+  geom_point(aes(x = 2608, y = 1.16), size=3, color="darkblue", fill=alpha("cyan", 0.3), alpha=0.7, shape=21, stroke=1.5) +
   # E3429V - ASD
   geom_segment(aes(x = 3429, xend = 3429, y = 0.97, yend = 0.85), size = 0.75) +
   geom_point(aes(x = 3429, y = 0.84), size=3, color="darkblue", fill=alpha("cyan", 0.3), alpha=0.7, shape=21, stroke=1.5) +
@@ -77,6 +77,12 @@ p + geom_rect(data = ank2[ank2$type == "CHAIN",], aes(xmin = begin, xmax = end,
   # V3634D - CV
   geom_segment(aes(x = 3634, xend = 3634, y = 1.03, yend = 1.15), size = 0.75) +
   geom_point(aes(x = 3634, y = 1.16), size=3, color="red", fill=alpha("orange", 0.3), alpha=0.7, shape=21, stroke=1.5) +
+  # T3744N - CV
+  geom_segment(aes(x = 3744, xend = 3744, y = 0.99, yend = 0.85), size = 0.75) +
+  geom_point(aes(x = 3744, y = 0.84), size=3, color="red", fill=alpha("orange", 0.3), alpha=0.7, shape=21, stroke=1.5) +
+  # R3906 - CV
+  geom_segment(aes(x = 3906, xend = 3906, y = 1.01, yend = 1.15), size = 0.75) +
+  geom_point(aes(x = 3906, y = 1.16), size=3, color="red", fill=alpha("orange", 0.3), alpha=0.7, shape=21, stroke=1.5) +
   theme_classic() +
   theme(legend.position = "bottom", text = element_text(size = 20), panel.grid.major=element_blank()) +
   theme(axis.ticks = element_blank(),
